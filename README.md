@@ -126,6 +126,19 @@ Make sure you're following the guides provided [here](https://palera.in), also w
 
 Create an issue here: https://github.com/palera1n/palera1n/issues/new/choose
 
+## Integrated Components
+
+This fork bundles the following upstream projects as managed directories:
+
+| Directory | Origin | Description |
+|-----------|--------|-------------|
+| `jbinit/` | [palera1n/jbinit](https://github.com/palera1n/jbinit) | Builds ramdisk.dmg and binpack.dmg |
+| `loader/` | [palera1n/loader](https://github.com/palera1n/loader) | iOS/tvOS loader app |
+| `jbinit/src/bridgehook/dobby/` | [jmpews/Dobby](https://github.com/jmpews/Dobby) | Inline hooking framework |
+| `jbinit/src/ellekit/ellekit/` | [evelyneee/ellekit](https://github.com/evelyneee/ellekit) | Tweak injection library |
+| `jbinit/src/payload/libroot/` | [opa334/libroot](https://github.com/opa334/libroot) | Rootless path utilities |
+| `jbinit/tools/libdmg-hfsplus/` | [palera1n/libdmg-hfsplus](https://github.com/palera1n/libdmg-hfsplus) | HFS+ disk image tools |
+
 ## Credits
 
 [All credits for palera1n can be found here](https://palera.in/)
