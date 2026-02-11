@@ -179,11 +179,29 @@ $(RESOURCES_DIR)/ramdisk.dmg.lzma: $(RESOURCES_DIR)/ramdisk.dmg
 $(RESOURCES_DIR)/checkra1n-kpf-pongo.lzma: $(RESOURCES_DIR)/checkra1n-kpf-pongo
 	xz --format=lzma -vfc6ekT 0 $< > $@
 
+# ramdisk.dmg and binpack.dmg can be:
+# 1. Built locally from ../jbinit (default, via top-level Makefile)
+# 2. Downloaded from CDN (USE_REMOTE_DEPS=1)
+# 3. Provided manually via -r and -o flags at runtime
 $(RESOURCES_DIR)/ramdisk.dmg:
+ifeq ($(USE_REMOTE_DEPS),1)
 	curl -Lfo $@ https://cdn.nickchan.lol/palera1n/c-rewrite/deps/ramdisk.dmg
+else
+	@if [ ! -f $@ ]; then \
+		echo "Error: $@ not found. Run 'make jbinit-build' first or set USE_REMOTE_DEPS=1"; \
+		exit 1; \
+	fi
+endif
 
 $(RESOURCES_DIR)/binpack.dmg:
+ifeq ($(USE_REMOTE_DEPS),1)
 	curl -Lfo $@ https://cdn.nickchan.lol/palera1n/c-rewrite/deps/binpack.dmg
+else
+	@if [ ! -f $@ ]; then \
+		echo "Error: $@ not found. Run 'make jbinit-build' first or set USE_REMOTE_DEPS=1"; \
+		exit 1; \
+	fi
+endif
 
 $(RESOURCES_DIR)/Pongo.bin:
 	curl -Lfo $@ https://cdn.nickchan.lol/palera1n/artifacts/kpf/iOS15/Pongo.bin

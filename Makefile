@@ -71,25 +71,68 @@ CFLAGS += -DBUILD_COMMIT="\"$(BUILD_COMMIT)\""
 CPATH =
 LIBRARY_PATH =
 
-export SRC DEP UNAME CC CFLAGS LDFLAGS LIBS SHELL TARGET_OS DEV_BUILD BUILD_DATE BUILD_TAG BUILD_WHOAMI BUILD_STYLE BUILD_NUMBER BUILD_BRANCH
+export SRC DEP UNAME CC CFLAGS LDFLAGS LIBS SHELL TARGET_OS DEV_BUILD BUILD_DATE BUILD_TAG BUILD_WHOAMI BUILD_STYLE BUILD_NUMBER BUILD_BRANCH USE_REMOTE_DEPS
+
+# Use local jbinit build by default (set USE_REMOTE_DEPS=1 to download from CDN)
+USE_REMOTE_DEPS ?= 0
 
 all: palera1n
 
 palera1n: download-deps
 	$(MAKE) -C src
 
+# Build jbinit to produce ramdisk.dmg and binpack.dmg
+jbinit-build:
+	@echo "Building jbinit (ramdisk.dmg and binpack.dmg)..."
+	@echo "Note: Requires Xcode, gnu-sed, ldid-procursus on macOS"
+	$(MAKE) -C jbinit
+
+# Build loader IPA (requires Xcode on macOS)
+loader-build:
+	@echo "Building loader (iOS)..."
+	$(MAKE) -C loader PLATFORM=iphoneos PACKAGE_NAME=palera1nLoader
+
+loader-tv-build:
+	@echo "Building loader (tvOS)..."
+	$(MAKE) -C loader PLATFORM=appletvos PACKAGE_NAME=palera1nLoaderTV
+
+# Build both loaders
+loader-all: loader-build loader-tv-build
+
+# Full local build: loader -> jbinit -> palera1n
+full-local-build: loader-all jbinit-build palera1n
+	@echo "Full local build complete!"
+
 clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C docs clean
 
+clean-all: clean
+	$(MAKE) -C jbinit clean || true
+	$(MAKE) -C loader clean || true
+
+ifeq ($(USE_REMOTE_DEPS),1)
+# Download pre-built dependencies from CDN (original behavior)
 download-deps:
 	$(MAKE) -C src $(patsubst %, resources/%, checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64 checkra1n-kpf-pongo ramdisk.dmg binpack.dmg Pongo.bin)
+else
+# Use locally-built jbinit artifacts
+download-deps: jbinit-deps
+	$(MAKE) -C src $(patsubst %, resources/%, checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64 checkra1n-kpf-pongo Pongo.bin)
+
+jbinit-deps: jbinit-build
+	@echo "Copying jbinit artifacts to src/resources/..."
+	@mkdir -p src/resources
+	cp jbinit/src/ramdisk.dmg src/resources/ramdisk.dmg
+	cp jbinit/src/binpack.dmg src/resources/binpack.dmg
+endif
 
 docs:
 	$(MAKE) -C docs
 
 distclean: clean
 	$(MAKE) -C src distclean
+	$(MAKE) -C jbinit distclean || true
 
-.PHONY: all palera1n clean docs distclean
+.PHONY: all palera1n clean clean-all docs distclean jbinit-build jbinit-deps loader-build loader-tv-build loader-all full-local-build download-deps
 

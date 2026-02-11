@@ -1,0 +1,59 @@
+name: Build Loader
+
+on:
+  push:
+    paths:
+      - 'loader/**'
+      - '.github/workflows/loader-build.yml'
+  pull_request:
+    paths:
+      - 'loader/**'
+      - '.github/workflows/loader-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (packages)
+        run: |
+          curl -LO https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_x86_64
+          sudo install -m755 ldid_macosx_x86_64 /usr/local/bin/ldid
+          brew install 7zip gnu-sed
+
+      - name: Use Xcode 15.4
+        run: |
+          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Set version from git
+        working-directory: loader
+        run: |
+          agvtool new-version -all $(git rev-parse HEAD)
+
+      - name: Compile palera1nLoader (iOS)
+        working-directory: loader
+        run: |
+          make package PLATFORM=iphoneos PACKAGE_NAME=palera1nLoader
+
+      - name: Compile palera1nLoader (tvOS)
+        working-directory: loader
+        run: |
+          make package PLATFORM=appletvos PACKAGE_NAME=palera1nLoaderTV
+
+      - name: Compress Headers
+        working-directory: loader
+        run: |
+          zip -r packages/patched_headers.zip apple-include-iphoneos apple-include-appletvos
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: loader-artifacts
+          path: |
+            loader/packages/palera1nLoader.ipa
+            loader/packages/palera1nLoaderTV.ipa
+            loader/packages/patched_headers.zip
+          retention-days: 30

@@ -1,0 +1,64 @@
+name: Build jbinit
+
+on:
+  push:
+    paths:
+      - 'jbinit/**'
+      - '.github/workflows/jbinit-build.yml'
+  pull_request:
+    paths:
+      - 'jbinit/**'
+      - '.github/workflows/jbinit-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select correct Xcode
+        uses: mobiledevops/xcode-select-version-action@v1
+        with:
+          xcode-select-version: 16.4
+
+      - name: Install dependencies (packages)
+        run: |
+          brew install make gnu-sed ldid-procursus fakeroot
+
+      - name: Install dependencies (loader and binpack)
+        working-directory: jbinit/src
+        run: |
+          curl -LOO https://static.palera.in/artifacts/loader/universal_lite/palera1nLoader{TV,}.ipa
+          curl -LO https://static.palera.in/binpack.tar
+
+      - name: Compile (Release)
+        working-directory: jbinit
+        run: |
+          gmake -j1 tools
+          gmake -j$(sysctl -n hw.ncpu)
+
+      - name: Prepare for upload (Release)
+        run: |
+          mkdir -p dist
+          cp jbinit/src/ramdisk.dmg dist/ramdisk.dmg
+          cp jbinit/src/binpack.dmg dist/binpack.dmg
+
+      - name: Compile (Development)
+        working-directory: jbinit
+        run: |
+          gmake clean
+          gmake -j$(sysctl -n hw.ncpu) DEV_BUILD=1
+
+      - name: Prepare for upload (Development)
+        run: |
+          cp jbinit/src/ramdisk.dmg dist/ramdisk.development.dmg
+          cp jbinit/src/binpack.dmg dist/binpack.development.dmg
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jbinit-artifacts
+          path: dist/
+          retention-days: 30

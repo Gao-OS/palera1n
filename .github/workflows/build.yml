@@ -7,18 +7,22 @@ on:
       - 'docs/**'
       - 'patches/**'
       - 'include/**'
+      - 'jbinit/**'
+      - 'loader/**'
       - 'Makefile'
       - 'CMakeLists.txt'
       - '.github/workflows/build.yml'
   pull_request:
     paths:
-        - 'src/**'
-        - 'docs/**'
-        - 'patches/**'
-        - 'include/**'
-        - 'Makefile'
-        - 'CMakeLists.txt'
-        - '.github/workflows/build.yml'
+      - 'src/**'
+      - 'docs/**'
+      - 'patches/**'
+      - 'include/**'
+      - 'jbinit/**'
+      - 'loader/**'
+      - 'Makefile'
+      - 'CMakeLists.txt'
+      - '.github/workflows/build.yml'
   workflow_dispatch:
 
 jobs:
