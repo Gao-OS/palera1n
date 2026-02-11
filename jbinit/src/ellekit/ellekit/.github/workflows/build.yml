@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - ".gitignore"
+
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - ".gitignore"
+
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-13
+    strategy:
+      matrix:
+        include:
+          - name: debug
+            flags: ""
+          - name: release
+            flags: "RELEASE=1"
+          - name: mac
+            flags: "RELEASE=1 MAC=1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Get tags
+        run: git fetch --prune --unshallow --tags
+
+      - name: Select Xcode version (15.1)
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_15.1.app
+
+      - name: Bootstrap Procursus
+        uses: dhinakg/procursus-action@main
+        with:
+          packages: ldid findutils sed coreutils
+          cache: true
+          cache-path: ~/__cache
+
+      - name: Build ${{ matrix.name }}
+        run: make ${{ matrix.flags }}
+
+      - name: Upload packages to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }} package
+          path: ${{ github.workspace }}/packages/*
+      - name: Upload packages to release
+        if: github.event_name == 'release' && matrix.name == 'release'
+        uses: svenstaro/upload-release-action@2.7.0
+        with:
+          file: ${{ github.workspace }}/packages/*.deb
+          file_glob: true

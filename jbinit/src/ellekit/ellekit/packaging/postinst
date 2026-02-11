@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# from https://theapplewiki.com/wiki/Dev:Packaging
+function finish() {
+    f="${1}"
+
+    # No control fd: bail out
+    [[ -z "${f}" || -z "${CYDIA}" ]] && return
+    cydia=(${CYDIA})
+
+    # Cydia control fd version != 1: bail out
+    [[ ${cydia[1]} -eq 1 ]] || return
+
+    echo "finish:${f}" >&${cydia[0]}
+}
+
+function run_loader() {
+    @INSTALL_PREFIX@/usr/libexec/ellekit/loader
+}
+
+# Remove log if it exists
+rm -f @INSTALL_PREFIX@/var/mobile/log.txt
+# Older builds of ElleKit previously always put the log file here
+if [[ -f /var/mobile/log.txt ]]; then
+    rm /var/mobile/log.txt
+fi
+
+if [[ -f /dev/rmd0 ]]; then
+    # checkra1n based jailbreak (palera1n-c, odysseyra1n)
+
+    # if [[ -f /var/jb/.palecursus_strapped && -f /cores/binpack/usr/lib/systemhook.dylib ]]; then
+    #     # palera1n v2.0.0 beta ?'s systemhook loads /var/jb/usr/lib/TweakInject.dylib
+    #     true
+    # else
+    #     run_loader
+    # fi
+
+    # palera1n changes not currently implemented, so always run loader
+    run_loader
+elif [[ -f /var/jb/.installed_dopamine || -f /var/jb/.installed_fugu15max ||
+    -f /var/jb/.installed_meowbrek ||
+    -f /var/jb/.xia0o0o0o_jb_installed ]]; then
+    # Dopamine/meowbrek2/Def1nit3lyN0tAJa1lbr3akTool systemhooks load /var/jb/usr/lib/TweakLoader.dylib
+    true
+elif [[ -f /.installed_taurine || -f /.installed_odyssey ]]; then
+    # Taurine and Odyssey (but not odysseyra1n) load /usr/lib/TweakInject.dylib
+    true
+else
+    # Run loader on all unrecognized jailbreaks
+    run_loader
+fi
+
+finish usreboot
