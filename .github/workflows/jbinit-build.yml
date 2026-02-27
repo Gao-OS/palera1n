@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'jbinit/**'
+      - 'loader/**'
       - '.github/workflows/jbinit-build.yml'
   pull_request:
     paths:
       - 'jbinit/**'
+      - 'loader/**'
       - '.github/workflows/jbinit-build.yml'
   workflow_dispatch:
 
@@ -27,11 +29,23 @@ jobs:
         run: |
           brew install make gnu-sed ldid-procursus fakeroot
 
-      - name: Install dependencies (loader and binpack)
+      - name: Build loader (iOS and tvOS)
+        run: |
+          make loader-all
+
+      - name: Copy loader IPAs to jbinit
         working-directory: jbinit/src
         run: |
-          curl -LOO https://static.palera.in/artifacts/loader/universal_lite/palera1nLoader{TV,}.ipa
-          curl -LO https://static.palera.in/binpack.tar
+          cp ../../loader/packages/palera1nLoader.ipa .
+          cp ../../loader/packages/palera1nLoaderTV.ipa .
+
+      - name: Download binpack.tar
+        working-directory: jbinit/src
+        env:
+          DEPS_TAG: deps-v1
+          DEPS_REPO: Gao-OS/palera1n
+        run: |
+          curl -Lfo binpack.tar "https://github.com/${DEPS_REPO}/releases/download/${DEPS_TAG}/binpack.tar"
 
       - name: Compile (Release)
         working-directory: jbinit

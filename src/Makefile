@@ -72,6 +72,11 @@ CHECKRA1N_VERSION ?= 0.1337.3
 LIPO = lipo
 LDID = ldid
 
+# Self-hosted dependency configuration (fallback for standalone use)
+DEPS_TAG ?= deps-v1
+DEPS_REPO ?= Gao-OS/palera1n
+DEPS_BASE_URL ?= https://github.com/$(DEPS_REPO)/releases/download/$(DEPS_TAG)
+
 ifeq ($(TARGET_OS),Darwin)
 ifneq ($(USE_LIBUSB),1)
 else
@@ -118,7 +123,7 @@ endif
 endif
 
 $(RESOURCES_DIR)/checkra1n-%:
-	curl -Lfo $@ https://assets.checkra.in/downloads/preview/$(CHECKRA1N_VERSION)/$$(echo $@ | cut -d/ -f2)
+	curl -Lfo $@ $(DEPS_BASE_URL)/$$(echo $@ | cut -d/ -f2)
 	chmod 755 $@
 
 $(RESOURCES_DIR)/checkra1n: $(RESOURCES_DIR)/checkra1n-macos usb.xml
@@ -171,7 +176,7 @@ $(RESOURCES_DIR)/libcheckra1nhelper.dylib: chkstk.S
 	$(CC) $(CFLAGS) $(LDFLAGS) -shared chkstk.S -o $@
 
 $(RESOURCES_DIR)/checkra1n-kpf-pongo:
-	curl -Lfo $@ https://cdn.nickchan.lol/palera1n/artifacts/kpf/iOS15/checkra1n-kpf-pongo
+	curl -Lfo $@ $(DEPS_BASE_URL)/checkra1n-kpf-pongo
 
 $(RESOURCES_DIR)/ramdisk.dmg.lzma: $(RESOURCES_DIR)/ramdisk.dmg
 	xz --format=lzma -vfc6ekT 0 $< > $@
@@ -181,11 +186,11 @@ $(RESOURCES_DIR)/checkra1n-kpf-pongo.lzma: $(RESOURCES_DIR)/checkra1n-kpf-pongo
 
 # ramdisk.dmg and binpack.dmg can be:
 # 1. Built locally from ../jbinit (default, via top-level Makefile)
-# 2. Downloaded from CDN (USE_REMOTE_DEPS=1)
+# 2. Downloaded from GitHub Releases (USE_REMOTE_DEPS=1)
 # 3. Provided manually via -r and -o flags at runtime
 $(RESOURCES_DIR)/ramdisk.dmg:
 ifeq ($(USE_REMOTE_DEPS),1)
-	curl -Lfo $@ https://cdn.nickchan.lol/palera1n/c-rewrite/deps/ramdisk.dmg
+	curl -Lfo $@ $(DEPS_BASE_URL)/ramdisk.dmg
 else
 	@if [ ! -f $@ ]; then \
 		echo "Error: $@ not found. Run 'make jbinit-build' first or set USE_REMOTE_DEPS=1"; \
@@ -195,7 +200,7 @@ endif
 
 $(RESOURCES_DIR)/binpack.dmg:
 ifeq ($(USE_REMOTE_DEPS),1)
-	curl -Lfo $@ https://cdn.nickchan.lol/palera1n/c-rewrite/deps/binpack.dmg
+	curl -Lfo $@ $(DEPS_BASE_URL)/binpack.dmg
 else
 	@if [ ! -f $@ ]; then \
 		echo "Error: $@ not found. Run 'make jbinit-build' first or set USE_REMOTE_DEPS=1"; \
@@ -204,7 +209,7 @@ else
 endif
 
 $(RESOURCES_DIR)/Pongo.bin:
-	curl -Lfo $@ https://cdn.nickchan.lol/palera1n/artifacts/kpf/iOS15/Pongo.bin
+	curl -Lfo $@ $(DEPS_BASE_URL)/Pongo.bin
 
 clean:
 	rm -rf $(OBJDIR)/*.o $(GENDIR)/*.c $(GENDIR)/*.o palera1n palera1n.dSYM libcheckra1nhelper.dylib

@@ -12,15 +12,17 @@ The jailbreak "store" (package manager repositories like Sileo, Zebra, Cydia) is
 
 ## Component Download URLs
 
-These URLs in `src/Makefile` control what gets embedded into the palera1n binary:
+These URLs in `src/Makefile` control what gets embedded into the palera1n binary. All dependencies are self-hosted on GitHub Releases (configured via `DEPS_TAG`, `DEPS_REPO`, `DEPS_BASE_URL` in the Makefiles):
 
 | Component | URL | Purpose |
 |-----------|-----|---------|
-| ramdisk.dmg | `https://cdn.nickchan.lol/palera1n/c-rewrite/deps/ramdisk.dmg` | Boot ramdisk with jailbreak logic |
-| binpack.dmg | `https://cdn.nickchan.lol/palera1n/c-rewrite/deps/binpack.dmg` | Overlay with loader app and utilities |
-| checkra1n-kpf-pongo | `https://cdn.nickchan.lol/palera1n/artifacts/kpf/iOS15/checkra1n-kpf-pongo` | Kernel patchfinder |
-| Pongo.bin | `https://cdn.nickchan.lol/palera1n/artifacts/kpf/iOS15/Pongo.bin` | PongoOS bootloader |
-| checkra1n | `https://assets.checkra.in/downloads/preview/0.1337.3/...` | Checkm8 exploit binary |
+| ramdisk.dmg | `$(DEPS_BASE_URL)/ramdisk.dmg` | Boot ramdisk with jailbreak logic |
+| binpack.dmg | `$(DEPS_BASE_URL)/binpack.dmg` | Overlay with loader app and utilities |
+| checkra1n-kpf-pongo | `$(DEPS_BASE_URL)/checkra1n-kpf-pongo` | Kernel patchfinder |
+| Pongo.bin | `$(DEPS_BASE_URL)/Pongo.bin` | PongoOS bootloader |
+| checkra1n-* | `$(DEPS_BASE_URL)/checkra1n-{macos,linux-*}` | Checkm8 exploit binary |
+
+Default base URL: `https://github.com/Gao-OS/palera1n/releases/download/deps-v1`
 
 ## How Stores Are Configured
 
@@ -60,18 +62,23 @@ palera1n -K /path/to/custom-kpf
 palera1n -o /path/to/custom-binpack.dmg -r /path/to/custom-ramdisk.dmg
 ```
 
-### Option 2: Modify Makefile URLs (For Custom Builds)
+### Option 2: Override Dependency Source (For Custom Builds)
 
-Edit `src/Makefile` to point to your own hosted files:
+Override the dependency base URL at build time:
 
+```bash
+# Point to your own GitHub Releases or CDN
+make DEPS_BASE_URL=https://your-cdn.example.com distclean all
+
+# Or override individual variables
+make DEPS_REPO=your-org/your-repo DEPS_TAG=your-tag distclean all
+```
+
+Or edit the defaults in the top-level `Makefile`:
 ```makefile
-# Line 183 - ramdisk
-$(RESOURCES_DIR)/ramdisk.dmg:
-    curl -Lfo $@ https://your-cdn.example.com/ramdisk.dmg
-
-# Line 186 - binpack (overlay with loader app)
-$(RESOURCES_DIR)/binpack.dmg:
-    curl -Lfo $@ https://your-cdn.example.com/binpack.dmg
+DEPS_TAG ?= deps-v1
+DEPS_REPO ?= Gao-OS/palera1n
+DEPS_BASE_URL ?= https://github.com/$(DEPS_REPO)/releases/download/$(DEPS_TAG)
 ```
 
 Then rebuild:
@@ -258,9 +265,9 @@ palera1n -r jbinit/src/ramdisk.dmg -o jbinit/src/binpack.dmg
 
 | Dependency | Source | Purpose |
 |------------|--------|---------|
-| palera1nLoader.ipa | static.palera.in | iOS loader app |
-| palera1nLoaderTV.ipa | static.palera.in | tvOS loader app |
-| binpack.tar | static.palera.in | Procursus CLI tools (shell, SSH, etc.) |
+| palera1nLoader.ipa | Built from `loader/` | iOS loader app |
+| palera1nLoaderTV.ipa | Built from `loader/` | tvOS loader app |
+| binpack.tar | GitHub Releases (`deps-v1`) | Procursus CLI tools (shell, SSH, etc.) |
 | libellekit.dylib | Built from jbinit/src/ellekit/ | Tweak injection |
 | AppleTVOS.sdk | Xcode | Target SDK for arm64 compilation |
 | MacOSX.sdk | Xcode | Host SDK for build tools |

@@ -71,10 +71,15 @@ CFLAGS += -DBUILD_COMMIT="\"$(BUILD_COMMIT)\""
 CPATH =
 LIBRARY_PATH =
 
-export SRC DEP UNAME CC CFLAGS LDFLAGS LIBS SHELL TARGET_OS DEV_BUILD BUILD_DATE BUILD_TAG BUILD_WHOAMI BUILD_STYLE BUILD_NUMBER BUILD_BRANCH USE_REMOTE_DEPS
+export SRC DEP UNAME CC CFLAGS LDFLAGS LIBS SHELL TARGET_OS DEV_BUILD BUILD_DATE BUILD_TAG BUILD_WHOAMI BUILD_STYLE BUILD_NUMBER BUILD_BRANCH USE_REMOTE_DEPS DEPS_TAG DEPS_REPO DEPS_BASE_URL
 
-# Use local jbinit build by default (set USE_REMOTE_DEPS=1 to download from CDN)
+# Use local jbinit build by default (set USE_REMOTE_DEPS=1 to download from GitHub Releases)
 USE_REMOTE_DEPS ?= 0
+
+# Self-hosted dependency configuration (GitHub Releases)
+DEPS_TAG ?= deps-v1
+DEPS_REPO ?= Gao-OS/palera1n
+DEPS_BASE_URL ?= https://github.com/$(DEPS_REPO)/releases/download/$(DEPS_TAG)
 
 all: palera1n
 
@@ -112,7 +117,7 @@ clean-all: clean
 	$(MAKE) -C loader clean || true
 
 ifeq ($(USE_REMOTE_DEPS),1)
-# Download pre-built dependencies from CDN (original behavior)
+# Download all pre-built dependencies from GitHub Releases
 download-deps:
 	$(MAKE) -C src $(patsubst %, resources/%, checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64 checkra1n-kpf-pongo ramdisk.dmg binpack.dmg Pongo.bin)
 else

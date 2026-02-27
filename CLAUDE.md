@@ -100,11 +100,11 @@ Binary resources are embedded into the palera1n binary at build time:
 |----------|--------|----------------------|
 | ramdisk.dmg | Built by `jbinit/` or downloaded | `NO_RAMDISK=1` |
 | binpack.dmg | Built by `jbinit/` or downloaded | `NO_OVERLAY=1` |
-| checkra1n | Downloaded from assets.checkra.in | `NO_CHECKRAIN=1` |
-| checkra1n-kpf-pongo | Downloaded from CDN | `NO_KPF=1` |
-| Pongo.bin | Downloaded from CDN | `NO_CUSTOM_PONGO=1` |
+| checkra1n | Downloaded from GitHub Releases | `NO_CHECKRAIN=1` |
+| checkra1n-kpf-pongo | Downloaded from GitHub Releases | `NO_KPF=1` |
+| Pongo.bin | Downloaded from GitHub Releases | `NO_CUSTOM_PONGO=1` |
 
-By default, ramdisk.dmg and binpack.dmg are built locally from the `jbinit/` directory. Set `USE_REMOTE_DEPS=1` to download pre-built versions from CDN instead.
+By default, ramdisk.dmg and binpack.dmg are built locally from the `jbinit/` directory. Set `USE_REMOTE_DEPS=1` to download pre-built versions from GitHub Releases instead. All remote dependencies are self-hosted via the `deps-v1` release tag (configurable with `DEPS_TAG`, `DEPS_REPO`, `DEPS_BASE_URL`).
 
 Resources can be overridden at runtime with `-r`, `-K`, `-o`, `-k`, `-i` flags.
 

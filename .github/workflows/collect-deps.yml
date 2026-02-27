@@ -1,0 +1,94 @@
+name: Collect Dependencies
+
+on:
+  workflow_dispatch:
+    inputs:
+      deps_tag:
+        description: 'Release tag for collected dependencies'
+        required: true
+        default: 'deps-v1'
+      checkra1n_version:
+        description: 'checkra1n version to download'
+        required: true
+        default: '0.1337.3'
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download checkra1n binaries
+        run: |
+          mkdir -p deps
+          for variant in checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64; do
+            echo "Downloading $variant..."
+            curl -Lfo "deps/$variant" "https://assets.checkra.in/downloads/preview/${{ inputs.checkra1n_version }}/$variant"
+            chmod 755 "deps/$variant"
+          done
+
+      - name: Download KPF and PongoOS
+        run: |
+          echo "Downloading checkra1n-kpf-pongo..."
+          curl -Lfo deps/checkra1n-kpf-pongo https://cdn.nickchan.lol/palera1n/artifacts/kpf/iOS15/checkra1n-kpf-pongo
+
+          echo "Downloading Pongo.bin..."
+          curl -Lfo deps/Pongo.bin https://cdn.nickchan.lol/palera1n/artifacts/kpf/iOS15/Pongo.bin
+
+      - name: Download binpack.tar
+        run: |
+          echo "Downloading binpack.tar..."
+          curl -Lfo deps/binpack.tar https://static.palera.in/binpack.tar
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd deps
+          sha256sum * | tee checksums.sha256
+
+      - name: Delete existing release (if any)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "${{ inputs.deps_tag }}" --yes --cleanup-tag 2>/dev/null || true
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > release-notes.md <<EOF
+          ## Collected Dependencies
+
+          Pre-built third-party binaries for the palera1n build system.
+
+          **checkra1n version**: ${{ inputs.checkra1n_version }}
+
+          ### SHA256 Checksums
+          \`\`\`
+          $(cat deps/checksums.sha256)
+          \`\`\`
+
+          ### Sources
+          | Binary | Original Source |
+          |--------|---------------|
+          | checkra1n-* | assets.checkra.in |
+          | checkra1n-kpf-pongo | cdn.nickchan.lol |
+          | Pongo.bin | cdn.nickchan.lol |
+          | binpack.tar | static.palera.in |
+          EOF
+
+          gh release create "${{ inputs.deps_tag }}" \
+            --title "Dependencies ${{ inputs.deps_tag }}" \
+            --notes-file release-notes.md \
+            deps/checkra1n-macos \
+            deps/checkra1n-linux-arm64 \
+            deps/checkra1n-linux-armel \
+            deps/checkra1n-linux-x86 \
+            deps/checkra1n-linux-x86_64 \
+            deps/checkra1n-kpf-pongo \
+            deps/Pongo.bin \
+            deps/binpack.tar \
+            deps/checksums.sha256
