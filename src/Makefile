@@ -175,8 +175,19 @@ endif
 $(RESOURCES_DIR)/libcheckra1nhelper.dylib: chkstk.S
 	$(CC) $(CFLAGS) $(LDFLAGS) -shared chkstk.S -o $@
 
+# checkra1n-kpf-pongo can be:
+# 1. Built locally from ../pongo (default on macOS, via top-level Makefile)
+# 2. Downloaded from GitHub Releases (USE_REMOTE_DEPS=1 or Linux)
+# 3. Provided manually via -K flag at runtime
 $(RESOURCES_DIR)/checkra1n-kpf-pongo:
+ifeq ($(USE_REMOTE_DEPS),1)
 	curl -Lfo $@ $(DEPS_BASE_URL)/checkra1n-kpf-pongo
+else
+	@if [ ! -f $@ ]; then \
+		echo "Error: $@ not found. Run 'make pongo-build' first or set USE_REMOTE_DEPS=1"; \
+		exit 1; \
+	fi
+endif
 
 $(RESOURCES_DIR)/ramdisk.dmg.lzma: $(RESOURCES_DIR)/ramdisk.dmg
 	xz --format=lzma -vfc6ekT 0 $< > $@
@@ -208,8 +219,19 @@ else
 	fi
 endif
 
+# Pongo.bin can be:
+# 1. Built locally from ../pongo (default on macOS, via top-level Makefile)
+# 2. Downloaded from GitHub Releases (USE_REMOTE_DEPS=1 or Linux)
+# 3. Provided manually via -k flag at runtime
 $(RESOURCES_DIR)/Pongo.bin:
+ifeq ($(USE_REMOTE_DEPS),1)
 	curl -Lfo $@ $(DEPS_BASE_URL)/Pongo.bin
+else
+	@if [ ! -f $@ ]; then \
+		echo "Error: $@ not found. Run 'make pongo-build' first or set USE_REMOTE_DEPS=1"; \
+		exit 1; \
+	fi
+endif
 
 clean:
 	rm -rf $(OBJDIR)/*.o $(GENDIR)/*.c $(GENDIR)/*.o palera1n palera1n.dSYM libcheckra1nhelper.dylib

@@ -1,0 +1,41 @@
+name: Build PongoOS
+
+on:
+  push:
+    paths:
+      - 'pongo/**'
+      - '.github/workflows/pongo-build.yml'
+  pull_request:
+    paths:
+      - 'pongo/**'
+      - '.github/workflows/pongo-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select correct Xcode
+        uses: mobiledevops/xcode-select-version-action@v1
+        with:
+          xcode-select-version: 16.2
+
+      - name: Build PongoOS
+        run: |
+          make pongo-build
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p dist
+          cp pongo/build/Pongo.bin dist/Pongo.bin
+          cp pongo/build/checkra1n-kpf-pongo dist/checkra1n-kpf-pongo
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pongo-artifacts
+          path: dist/
+          retention-days: 30

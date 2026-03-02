@@ -300,12 +300,13 @@ With the integrated jbinit and loader directories, customizing is straightforwar
 |-----------|----------|---------|
 | **jbinit** | `./jbinit/` | Builds ramdisk.dmg and binpack.dmg |
 | **loader** | `./loader/` | iOS/tvOS loader app (packaged into binpack) |
-| [palera1n/PongoOS](https://github.com/palera1n/PongoOS) | External | Boot environment |
+| **PongoOS** | `./pongo/` | Builds Pongo.bin and checkra1n-kpf-pongo |
 | [ProcursusTeam/Procursus](https://github.com/ProcursusTeam/Procursus) | External | CLI tools bootstrap (binpack.tar) |
 
 **Forked from** (upstream repositories):
 - https://github.com/palera1n/jbinit
 - https://github.com/palera1n/loader
+- https://github.com/palera1n/PongoOS (iOS15 branch)
 
 ## Summary
 

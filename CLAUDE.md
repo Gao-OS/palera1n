@@ -10,13 +10,14 @@ Fork of [palera1n/palera1n](https://github.com/palera1n/palera1n) — a C-based 
 
 ## Repository Structure
 
-This fork includes jbinit and loader as integrated directories for a fully self-contained build:
+This fork includes jbinit, loader, and PongoOS as integrated directories for a fully self-contained build:
 
 ```
 palera1n/
 ├── src/           # Main palera1n C source
 ├── jbinit/        # Builds ramdisk.dmg and binpack.dmg (forked from palera1n/jbinit)
 ├── loader/        # iOS/tvOS loader app in Swift (forked from palera1n/loader)
+├── pongo/         # Builds Pongo.bin and checkra1n-kpf-pongo (forked from palera1n/PongoOS)
 ├── include/       # Header files
 ├── docs/          # Man pages
 └── dep_root/      # Pre-built static library dependencies
@@ -25,10 +26,10 @@ palera1n/
 ## Build Commands
 
 ```bash
-# Standard build (uses local jbinit to build ramdisk/binpack)
+# Standard build (uses local jbinit and pongo to build ramdisk/binpack/Pongo.bin/KPF)
 make
 
-# Full local build: loader → jbinit → palera1n (requires Xcode)
+# Full local build: loader → jbinit → pongo → palera1n (requires Xcode)
 make full-local-build
 
 # Build with remote CDN dependencies (original behavior)
@@ -36,6 +37,9 @@ make USE_REMOTE_DEPS=1
 
 # Build only jbinit (produces ramdisk.dmg and binpack.dmg)
 make jbinit-build
+
+# Build only PongoOS (produces Pongo.bin and checkra1n-kpf-pongo)
+make pongo-build
 
 # Build only loader (produces packages/palera1nLoader.ipa)
 make loader-build
@@ -70,6 +74,9 @@ make distclean      # everything including resources
 brew install gnu-sed make ldid-procursus
 ```
 
+**For PongoOS (macOS)**:
+- Xcode (with aarch64 cross-compilation support)
+
 **For loader (macOS)**:
 - Xcode 15+
 
@@ -101,10 +108,10 @@ Binary resources are embedded into the palera1n binary at build time:
 | ramdisk.dmg | Built by `jbinit/` or downloaded | `NO_RAMDISK=1` |
 | binpack.dmg | Built by `jbinit/` or downloaded | `NO_OVERLAY=1` |
 | checkra1n | Downloaded from GitHub Releases | `NO_CHECKRAIN=1` |
-| checkra1n-kpf-pongo | Downloaded from GitHub Releases | `NO_KPF=1` |
-| Pongo.bin | Downloaded from GitHub Releases | `NO_CUSTOM_PONGO=1` |
+| checkra1n-kpf-pongo | Built by `pongo/` or downloaded | `NO_KPF=1` |
+| Pongo.bin | Built by `pongo/` or downloaded | `NO_CUSTOM_PONGO=1` |
 
-By default, ramdisk.dmg and binpack.dmg are built locally from the `jbinit/` directory. Set `USE_REMOTE_DEPS=1` to download pre-built versions from GitHub Releases instead. All remote dependencies are self-hosted via the `deps-v1` release tag (configurable with `DEPS_TAG`, `DEPS_REPO`, `DEPS_BASE_URL`).
+By default on macOS, ramdisk.dmg and binpack.dmg are built locally from `jbinit/`, and Pongo.bin and checkra1n-kpf-pongo are built from `pongo/`. On Linux, all are downloaded since jbinit and pongo require Xcode. Set `USE_REMOTE_DEPS=1` to download everything from GitHub Releases. All remote dependencies are self-hosted via the `deps-v1` release tag (configurable with `DEPS_TAG`, `DEPS_REPO`, `DEPS_BASE_URL`).
 
 Resources can be overridden at runtime with `-r`, `-K`, `-o`, `-k`, `-i` flags.
 

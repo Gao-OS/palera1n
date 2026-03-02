@@ -134,10 +134,26 @@ This fork bundles the following upstream projects as managed directories:
 |-----------|--------|-------------|
 | `jbinit/` | [palera1n/jbinit](https://github.com/palera1n/jbinit) | Builds ramdisk.dmg and binpack.dmg |
 | `loader/` | [palera1n/loader](https://github.com/palera1n/loader) | iOS/tvOS loader app |
+| `pongo/` | [palera1n/PongoOS](https://github.com/palera1n/PongoOS) (iOS15 branch) | Builds Pongo.bin and checkra1n-kpf-pongo |
+| `pongo/newlib/` | [checkra1n/newlib](https://github.com/checkra1n/newlib) | C standard library for PongoOS |
 | `jbinit/src/bridgehook/dobby/` | [jmpews/Dobby](https://github.com/jmpews/Dobby) | Inline hooking framework |
 | `jbinit/src/ellekit/ellekit/` | [evelyneee/ellekit](https://github.com/evelyneee/ellekit) | Tweak injection library |
 | `jbinit/src/payload/libroot/` | [opa334/libroot](https://github.com/opa334/libroot) | Rootless path utilities |
 | `jbinit/tools/libdmg-hfsplus/` | [palera1n/libdmg-hfsplus](https://github.com/palera1n/libdmg-hfsplus) | HFS+ disk image tools |
+
+### Build-from-Source Status
+
+After integrating PongoOS, all open-source components are now built from source on macOS. Only the closed-source checkra1n binary remains as a pre-built download:
+
+| Component | Source | Built from source? |
+|-----------|--------|--------------------|
+| ramdisk.dmg | `jbinit/` | Yes |
+| binpack.dmg | `jbinit/` | Yes |
+| Pongo.bin | `pongo/` | Yes |
+| checkra1n-kpf-pongo | `pongo/` | Yes |
+| checkra1n | Downloaded from GitHub Releases | No (closed-source) |
+
+**Why is checkra1n closed-source?** checkra1n implements the [checkm8](https://github.com/axi0mX/ipwndfu) exploit — a hardware vulnerability in Apple's SecureROM on A5-A11 chips. While the underlying vulnerability is public (disclosed by axi0mX), the full exploit chain and payload delivery in checkra1n have never been open-sourced by the checkra1n team. Open-source implementations of the checkm8 exploit exist (e.g., [ipwndfu](https://github.com/axi0mX/ipwndfu), [gaster](https://github.com/0x7ff/gaster)) but are not direct replacements for checkra1n's full functionality.
 
 ## Credits
 

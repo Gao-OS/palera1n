@@ -92,6 +92,18 @@ jbinit-build:
 	@echo "Note: Requires Xcode, gnu-sed, ldid-procursus on macOS"
 	$(MAKE) -C jbinit
 
+# Build PongoOS to produce Pongo.bin and checkra1n-kpf-pongo
+pongo-build:
+	@echo "Building PongoOS (Pongo.bin and checkra1n-kpf-pongo)..."
+	@echo "Note: Requires Xcode on macOS"
+	$(MAKE) -C pongo IGNORE_SUBMODULE_HEAD=1
+
+pongo-deps: pongo-build
+	@echo "Copying PongoOS artifacts to src/resources/..."
+	@mkdir -p src/resources
+	cp pongo/build/Pongo.bin src/resources/Pongo.bin
+	cp pongo/build/checkra1n-kpf-pongo src/resources/checkra1n-kpf-pongo
+
 # Build loader IPA (requires Xcode on macOS)
 loader-build:
 	@echo "Building loader (iOS)..."
@@ -104,8 +116,8 @@ loader-tv-build:
 # Build both loaders
 loader-all: loader-build loader-tv-build
 
-# Full local build: loader -> jbinit -> palera1n
-full-local-build: loader-all jbinit-build palera1n
+# Full local build: loader -> jbinit -> pongo -> palera1n
+full-local-build: loader-all jbinit-build pongo-build palera1n
 	@echo "Full local build complete!"
 
 clean:
@@ -115,15 +127,22 @@ clean:
 clean-all: clean
 	$(MAKE) -C jbinit clean || true
 	$(MAKE) -C loader clean || true
+	$(MAKE) -C pongo clean IGNORE_SUBMODULE_HEAD=1 || true
 
 ifeq ($(USE_REMOTE_DEPS),1)
 # Download all pre-built dependencies from GitHub Releases
 download-deps:
 	$(MAKE) -C src $(patsubst %, resources/%, checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64 checkra1n-kpf-pongo ramdisk.dmg binpack.dmg Pongo.bin)
 else
-# Use locally-built jbinit artifacts
-download-deps: jbinit-deps
-	$(MAKE) -C src $(patsubst %, resources/%, checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64 checkra1n-kpf-pongo Pongo.bin)
+ifeq ($(TARGET_OS),Darwin)
+# macOS: build jbinit and pongo from source, download only checkra1n binaries
+download-deps: jbinit-deps pongo-deps
+	$(MAKE) -C src $(patsubst %, resources/%, checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64)
+else
+# Linux: jbinit and pongo require Xcode; download from GitHub Releases
+download-deps:
+	$(MAKE) -C src $(patsubst %, resources/%, checkra1n-macos checkra1n-linux-arm64 checkra1n-linux-armel checkra1n-linux-x86 checkra1n-linux-x86_64 checkra1n-kpf-pongo ramdisk.dmg binpack.dmg Pongo.bin)
+endif
 
 jbinit-deps: jbinit-build
 	@echo "Copying jbinit artifacts to src/resources/..."
@@ -138,6 +157,7 @@ docs:
 distclean: clean
 	$(MAKE) -C src distclean
 	$(MAKE) -C jbinit distclean || true
+	$(MAKE) -C pongo clean IGNORE_SUBMODULE_HEAD=1 || true
 
-.PHONY: all palera1n clean clean-all docs distclean jbinit-build jbinit-deps loader-build loader-tv-build loader-all full-local-build download-deps
+.PHONY: all palera1n clean clean-all docs distclean jbinit-build jbinit-deps pongo-build pongo-deps loader-build loader-tv-build loader-all full-local-build download-deps
 
